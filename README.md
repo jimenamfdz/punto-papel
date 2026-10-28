@@ -315,6 +315,15 @@ y ejecuta:
 docker compose up --build
 ```
 
+Si Docker Desktop muestra un permiso `fs.read` durante el build, construye la
+imagen con Buildx y después inicia Compose sin volver a compilar:
+
+```bash
+docker buildx bake --allow="fs.read=../PAPELERÍA PUNTO & PAPEL" \
+  --set app.tags=punto-papel-app:local --load app
+docker compose up --no-build
+```
+
 La aplicación quedará disponible en [http://localhost:8080](http://localhost:8080)
 y Swagger en [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html).
 Para detener los contenedores conserva los datos con `docker compose down`; para

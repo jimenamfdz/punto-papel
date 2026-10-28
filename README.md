@@ -253,6 +253,14 @@ curl -i -X POST http://localhost:8080/api/usuarios/login \
 Las credenciales incorrectas y los usuarios inactivos reciben `401 Unauthorized`
 con el mismo mensaje, sin revelar si el nombre de usuario existe.
 
+## Protección por roles
+
+La API usa autenticación HTTP Basic sin estado. Las consultas de productos y las
+operaciones de ventas requieren un usuario activo; crear o editar productos y
+consultar el resumen de ventas requiere el rol `ADMIN`. El rol `VENDEDOR` puede
+consultar productos y registrar o consultar ventas, pero no modificar el
+catálogo ni consultar el resumen administrativo.
+
 Nunca se guardarán contraseñas en texto plano ni dentro del repositorio.
 
 Spring Boot recibe las variables del entorno; no carga `.env` por sí solo.

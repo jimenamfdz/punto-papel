@@ -6,6 +6,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Base64;
 import java.time.Duration;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -32,12 +33,16 @@ class PersistenciaPostgresTest {
 
     private HttpResponse<String> peticion(ServletWebServerApplicationContext app,
                                           String metodo, String ruta, String cuerpo) throws Exception {
-        var request = HttpRequest.newBuilder(URI.create(
+        var constructor = HttpRequest.newBuilder(URI.create(
                         "http://127.0.0.1:" + app.getWebServer().getPort() + ruta))
                 .timeout(Duration.ofSeconds(15))
-                .header("Content-Type", "application/json")
-                .method(metodo, cuerpo == null ? HttpRequest.BodyPublishers.noBody()
-                        : HttpRequest.BodyPublishers.ofString(cuerpo)).build();
+                .header("Content-Type", "application/json");
+        if (!ruta.startsWith("/api/usuarios")) {
+            constructor.header("Authorization", "Basic " + Base64.getEncoder().encodeToString(
+                    "admin:secreto123".getBytes()));
+        }
+        var request = constructor.method(metodo, cuerpo == null ? HttpRequest.BodyPublishers.noBody()
+                : HttpRequest.BodyPublishers.ofString(cuerpo)).build();
         return cliente.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
@@ -47,6 +52,9 @@ class PersistenciaPostgresTest {
         String id;
         JsonNode registrado;
         try (var app = iniciarAplicacion()) {
+            // El registro es público; después todas las operaciones usan Basic Auth.
+            peticion(app, "POST", "/api/usuarios",
+                    "{\"nombreUsuario\":\"admin\",\"password\":\"secreto123\",\"rol\":\"ADMIN\"}");
             var respuesta = peticion(app, "POST", "/api/productos",
                     mapper.writeValueAsString(new ProductoRequest(nombre, 20.0, 10)));
             assertEquals(201, respuesta.statusCode());
@@ -102,6 +110,7 @@ class PersistenciaPostgresTest {
             } finally {
                 app.getBean(VentaRepository.class).deleteAll();
                 app.getBean(ProductoRepository.class).deleteById(UUID.fromString(id));
+                app.getBean(UsuarioRepository.class).deleteAll();
             }
         }
     }

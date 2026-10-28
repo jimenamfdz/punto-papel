@@ -61,6 +61,7 @@ class PersistenciaPostgresTest {
         String id;
         JsonNode registrado;
         try (var app = iniciarAplicacion()) {
+            assertEquals(200, peticionSinCredenciales(app, "GET", "/v3/api-docs").statusCode());
             assertEquals(401, peticionSinCredenciales(app, "GET", "/api/productos").statusCode());
             // El registro es público; después todas las operaciones usan Basic Auth.
             peticion(app, "POST", "/api/usuarios",

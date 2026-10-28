@@ -37,7 +37,8 @@ public class SeguridadConfig {
                 .authorizeHttpRequests(reglas -> reglas
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/usuarios",
                                 "/api/usuarios/login").permitAll()
-                        .requestMatchers("/api/saludo", "/", "/index.html",
+                        .requestMatchers("/api/saludo", "/", "/index.html", "/swagger-ui.html",
+                                "/swagger-ui/**", "/v3/api-docs/**",
                                 "/css/**", "/js/**", "/favicon.ico").permitAll()
                         .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/productos/**")

@@ -271,6 +271,13 @@ consultar el resumen de ventas requiere el rol `ADMIN`. El rol `VENDEDOR` puede
 consultar productos y registrar o consultar ventas, pero no modificar el
 catálogo ni consultar el resumen administrativo.
 
+## Documentación interactiva de la API
+
+Con la aplicación iniciada, abre [Swagger UI](http://localhost:8080/swagger-ui.html)
+para explorar y probar los endpoints. El esquema OpenAPI en JSON está disponible
+en [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs). Swagger
+incluye el esquema de autenticación HTTP Basic para probar las rutas protegidas.
+
 Nunca se guardarán contraseñas en texto plano ni dentro del repositorio.
 
 Spring Boot recibe las variables del entorno; no carga `.env` por sí solo.
@@ -301,9 +308,9 @@ Los archivos `.env` y `.local/` están ignorados por Git y nunca deben subirse.
 
 ## Prueba de persistencia con PostgreSQL
 
-`mvn test` ejecuta las 66 pruebas unitarias sin requerir PostgreSQL. La prueba de
-integración se omite si no se proporciona una URL de pruebas. Para ejecutar las
-67 pruebas, inicia PostgreSQL y carga las variables:
+`mvn test` ejecuta las pruebas unitarias sin requerir PostgreSQL. La prueba de
+integración se omite si no se proporciona una URL de pruebas. Para ejecutar la
+suite completa, inicia PostgreSQL y carga las variables:
 
 ```bash
 bash scripts/postgres-local.sh start

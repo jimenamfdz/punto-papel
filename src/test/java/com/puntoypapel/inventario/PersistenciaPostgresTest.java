@@ -61,12 +61,12 @@ class PersistenciaPostgresTest {
             assertEquals(registrado, mapper.readTree(consulta.body()));
 
             var respuesta = peticion(app, "PUT", "/api/productos/" + id,
-                    mapper.writeValueAsString(new ProductoRequest(nombre + " actualizado", 45.5, 0)));
+                    mapper.writeValueAsString(new ProductoRequest(nombre + " actualizado", 45.5, 3)));
             assertEquals(200, respuesta.statusCode());
             actualizado = mapper.readTree(respuesta.body());
             assertEquals(id, actualizado.get("id").asText());
             assertEquals(45.5, actualizado.get("precio").asDouble());
-            assertEquals(0, actualizado.get("existencias").asInt());
+            assertEquals(3, actualizado.get("existencias").asInt());
         }
 
         try (var app = iniciarAplicacion()) {
@@ -90,7 +90,17 @@ class PersistenciaPostgresTest {
                 }
                 assertEquals(1, coincidencias);
                 assertEquals(404, peticion(app, "GET", "/api/productos/" + UUID.randomUUID(), null).statusCode());
+
+                var venta = peticion(app, "POST", "/api/ventas/productos/" + id, "{\"cantidad\":2}");
+                assertEquals(201, venta.statusCode());
+                assertEquals(id, mapper.readTree(venta.body()).get("productoId").asText());
+                assertEquals(2, mapper.readTree(venta.body()).get("cantidad").asInt());
+                assertEquals(91.0, mapper.readTree(venta.body()).get("total").asDouble());
+                var ventas = peticion(app, "GET", "/api/ventas", null);
+                assertEquals(200, ventas.statusCode());
+                assertEquals(1, mapper.readTree(ventas.body()).size());
             } finally {
+                app.getBean(VentaRepository.class).deleteAll();
                 app.getBean(ProductoRepository.class).deleteById(UUID.fromString(id));
             }
         }

@@ -39,6 +39,8 @@ mvn test
 - `POST /api/productos`
 - `GET /api/productos/{id}` — consulta un producto por su identificador UUID.
 - `PUT /api/productos/{id}` — actualiza nombre, precio y existencias conservando el ID.
+- `POST /api/ventas/productos/{productoId}` — registra una venta y descuenta existencias.
+- `GET /api/ventas` — consulta el historial de ventas.
 
 ### Registrar y consultar un producto por ID
 
@@ -83,6 +85,25 @@ ID y el listado reflejan los nuevos datos. No se crea un producto adicional.
 Si el ID no existe, devuelve `404 Not Found`. Un ID mal formado o datos inválidos
 devuelven `400 Bad Request`. Si la actualización se rechaza, el producto conserva
 todos sus valores anteriores.
+
+### Registrar una venta
+
+Envía el ID del producto y la cantidad que se vende:
+
+```bash
+curl -i -X POST http://localhost:8080/api/ventas/productos/REEMPLAZA_CON_EL_ID \
+  -H 'Content-Type: application/json' \
+  -d '{"cantidad":2}'
+```
+
+La respuesta es `201 Created` e incluye el ID de la venta, el producto, el precio
+unitario, la cantidad, el total y la fecha. La cantidad se descuenta del inventario
+dentro de la misma transacción que guarda la venta. La venta conserva el nombre y
+precio vigentes en el momento de la operación.
+
+Una cantidad cero, negativa, ausente o mayor que las existencias devuelve `400` y
+no modifica el inventario ni crea una venta. Si el producto no existe, devuelve
+`404`. El historial completo se consulta con `GET /api/ventas`.
 
 ### Validación del registro y la actualización de productos
 

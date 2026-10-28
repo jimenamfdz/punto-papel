@@ -20,4 +20,9 @@ public class UsuarioController {
     public ResponseEntity<UsuarioRespuesta> registrar(@RequestBody UsuarioRequest solicitud) {
         return ResponseEntity.status(HttpStatus.CREATED).body(servicio.registrar(solicitud));
     }
+
+    @PostMapping("/login")
+    public UsuarioRespuesta iniciarSesion(@RequestBody LoginRequest solicitud) {
+        return servicio.iniciarSesion(solicitud);
+    }
 }

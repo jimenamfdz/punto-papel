@@ -25,6 +25,16 @@ public class UsuarioService {
         return UsuarioRespuesta.desde(usuarios.save(usuario));
     }
 
+    public UsuarioRespuesta iniciarSesion(LoginRequest solicitud) {
+        solicitud.validar();
+        String nombreNormalizado = solicitud.nombreUsuario().trim().toLowerCase();
+        Usuario usuario = usuarios.findByNombreUsuario(nombreNormalizado)
+                .filter(Usuario::isActivo)
+                .filter(encontrado -> coincideContrasena(solicitud.password(), encontrado))
+                .orElseThrow(CredencialesInvalidasException::new);
+        return UsuarioRespuesta.desde(usuario);
+    }
+
     boolean coincideContrasena(String password, Usuario usuario) {
         return passwordEncoder.matches(password, usuario.getPasswordHash());
     }

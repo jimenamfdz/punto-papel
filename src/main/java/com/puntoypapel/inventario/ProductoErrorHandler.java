@@ -18,6 +18,11 @@ public class ProductoErrorHandler {
         return ResponseEntity.badRequest().body(new ErrorRespuesta(error.getMessage()));
     }
 
+    @ExceptionHandler(CredencialesInvalidasException.class)
+    public ResponseEntity<ErrorRespuesta> credencialesInvalidas(CredencialesInvalidasException error) {
+        return ResponseEntity.status(401).body(new ErrorRespuesta(error.getMessage()));
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorRespuesta> jsonInvalido() {
         return ResponseEntity.badRequest().body(new ErrorRespuesta(

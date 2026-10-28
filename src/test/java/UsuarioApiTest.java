@@ -7,6 +7,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -54,5 +55,55 @@ class UsuarioApiTest {
                         .contentType(APPLICATION_JSON)
                         .content("{\"nombreUsuario\":\"ana\",\"password\":\"corta\",\"rol\":\"ADMIN\"}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void iniciaSesionConContrasenaCorrecta() throws Exception {
+        AlmacenUsuariosMemoria almacen = new AlmacenUsuariosMemoria();
+        var api = api(almacen);
+        api.perform(post("/api/usuarios")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"nombreUsuario\":\"Ana\",\"password\":\"secreto123\",\"rol\":\"ADMIN\"}"))
+                .andExpect(status().isCreated());
+
+        var respuesta = api.perform(post("/api/usuarios/login")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"nombreUsuario\":\"ANA\",\"password\":\"secreto123\"}"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+
+        var json = mapper.readTree(respuesta);
+        assertEquals("ana", json.get("nombreUsuario").asText());
+        assertEquals("ADMIN", json.get("rol").asText());
+        assertFalse(json.has("password"));
+        assertFalse(json.has("passwordHash"));
+    }
+
+    @Test
+    void rechazaContrasenaIncorrecta() throws Exception {
+        AlmacenUsuariosMemoria almacen = new AlmacenUsuariosMemoria();
+        var api = api(almacen);
+        api.perform(post("/api/usuarios")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"nombreUsuario\":\"ana\",\"password\":\"secreto123\",\"rol\":\"ADMIN\"}"))
+                .andExpect(status().isCreated());
+
+        api.perform(post("/api/usuarios/login")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"nombreUsuario\":\"ana\",\"password\":\"incorrecta\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void rechazaUsuarioInactivo() throws Exception {
+        AlmacenUsuariosMemoria almacen = new AlmacenUsuariosMemoria();
+        var usuario = new UsuarioService(almacen).registrar(
+                new UsuarioRequest("ana", "secreto123", Rol.VENDEDOR));
+        Usuario guardado = almacen.findByNombreUsuario(usuario.nombreUsuario()).orElseThrow();
+        guardado.desactivar();
+
+        api(almacen).perform(post("/api/usuarios/login")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"nombreUsuario\":\"ana\",\"password\":\"secreto123\"}"))
+                .andExpect(status().isUnauthorized());
     }
 }

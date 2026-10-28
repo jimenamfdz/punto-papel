@@ -242,6 +242,17 @@ de creación, pero nunca la contraseña ni su hash. Las contraseñas se almacena
 con BCrypt y los nombres de usuario duplicados (sin distinguir mayúsculas) se
 rechazan.
 
+El inicio de sesión se realiza con `POST /api/usuarios/login`:
+
+```bash
+curl -i -X POST http://localhost:8080/api/usuarios/login \
+  -H 'Content-Type: application/json' \
+  -d '{"nombreUsuario":"ana","password":"secreto123"}'
+```
+
+Las credenciales incorrectas y los usuarios inactivos reciben `401 Unauthorized`
+con el mismo mensaje, sin revelar si el nombre de usuario existe.
+
 Nunca se guardarán contraseñas en texto plano ni dentro del repositorio.
 
 Spring Boot recibe las variables del entorno; no carga `.env` por sí solo.

@@ -24,6 +24,8 @@ const loginPassword = document.querySelector('#login-password');
 const loginMessage = document.querySelector('#login-message');
 const currentUserBadge = document.querySelector('#current-user');
 const logoutButton = document.querySelector('#logout');
+const userList = document.querySelector('#user-list');
+const userAdminMessage = document.querySelector('#user-admin-message');
 let currentUser = null;
 
 function authHeader() {
@@ -73,6 +75,7 @@ function startSession(credentials, user) {
   document.querySelectorAll('.admin-only').forEach(element => {
     element.classList.toggle('hidden', user.rol !== 'ADMIN');
   });
+  if (user.rol === 'ADMIN') loadUsers();
 }
 
 loginForm.addEventListener('submit', async event => {
@@ -186,6 +189,58 @@ async function loadSales() {
     salesList.innerHTML = `<p class="message error">${escapeHtml(error.message)}</p>`;
   }
 }
+
+function renderUsers(users) {
+  userList.innerHTML = users.map(user => `
+    <div class="user-row">
+      <div><strong>${escapeHtml(user.nombreUsuario)}</strong><small>${user.activo ? 'Activo' : 'Inactivo'} · creado ${new Date(user.creadoEn).toLocaleDateString('es-MX')}</small></div>
+      <div class="user-actions">
+        <select data-role="${user.id}" aria-label="Rol de ${escapeHtml(user.nombreUsuario)}">
+          <option value="ADMIN" ${user.rol === 'ADMIN' ? 'selected' : ''}>ADMIN</option>
+          <option value="VENDEDOR" ${user.rol === 'VENDEDOR' ? 'selected' : ''}>VENDEDOR</option>
+        </select>
+        <button class="button secondary" type="button" data-status="${user.id}" data-active="${user.activo}">${user.activo ? 'Desactivar' : 'Activar'}</button>
+      </div>
+    </div>`).join('');
+  userList.querySelectorAll('[data-role]').forEach(select => {
+    select.addEventListener('change', () => updateUserRole(select.dataset.role, select.value));
+  });
+  userList.querySelectorAll('[data-status]').forEach(button => {
+    button.addEventListener('click', () => updateUserStatus(button.dataset.status, button.dataset.active !== 'true'));
+  });
+}
+
+async function loadUsers() {
+  if (currentUser?.rol !== 'ADMIN') return;
+  try {
+    const response = await apiFetch('/api/usuarios');
+    const body = await response.json().catch(() => []);
+    if (!response.ok) throw new Error(body.mensaje || 'No se pudieron cargar los usuarios.');
+    renderUsers(body);
+  } catch (error) {
+    userList.innerHTML = `<p class="message error">${escapeHtml(error.message)}</p>`;
+  }
+}
+
+async function updateUser(path, payload) {
+  userAdminMessage.textContent = 'Guardando…';
+  userAdminMessage.classList.remove('error');
+  try {
+    const response = await apiFetch(path, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.mensaje || 'No se pudo actualizar el usuario.');
+    userAdminMessage.textContent = 'Usuario actualizado.';
+    await loadUsers();
+  } catch (error) {
+    userAdminMessage.textContent = error.message;
+    userAdminMessage.classList.add('error');
+  }
+}
+
+function updateUserRole(id, rol) { updateUser(`/api/usuarios/${id}/rol`, { rol }); }
+function updateUserStatus(id, activo) { updateUser(`/api/usuarios/${id}/estado`, { activo }); }
 
 function editProduct(product) {
   fields.id.value = product.id;

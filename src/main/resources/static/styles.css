@@ -62,5 +62,12 @@ select { width: 100%; padding: 12px 13px; border: 1px solid var(--line); border-
 .sales-list { max-height: 300px; overflow: auto; }
 .sale-row strong { display: block; color: var(--ink); }
 .sale-row small { color: var(--muted); }
+.user-admin { width: min(1180px, 86vw); margin: 0 auto 72px; }
+.user-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.user-row:last-child { border-bottom: 0; }
+.user-row small { display: block; margin-top: 4px; color: var(--muted); }
+.user-actions { display: flex; align-items: center; gap: 8px; }
+.user-actions select { width: auto; padding: 8px 10px; }
+@media (max-width: 600px) { .user-row { align-items: start; flex-direction: column; } .user-actions { width: 100%; } .user-actions select { flex: 1; } }
 @media (max-width: 950px) { .reports { grid-template-columns: 1fr; width: min(92vw, 620px); } }
 @media (max-width: 800px) { .topbar { align-items: start; } .layout { grid-template-columns: 1fr; width: min(92vw, 620px); margin-top: 24px; } .sales-panel { grid-column: auto; } .filters { grid-template-columns: 1fr 1fr; } .filters select, .filters .button { grid-column: span 2; } .summary-grid { grid-template-columns: 1fr; } }

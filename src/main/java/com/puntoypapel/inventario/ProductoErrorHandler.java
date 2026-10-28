@@ -24,7 +24,13 @@ public class ProductoErrorHandler {
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorRespuesta> idInvalido() {
+    public ResponseEntity<ErrorRespuesta> idInvalido(MethodArgumentTypeMismatchException error) {
+        if ("desde".equals(error.getName())) {
+            return ResponseEntity.badRequest().body(new ErrorRespuesta("La fecha inicial debe tener formato YYYY-MM-DD."));
+        }
+        if ("hasta".equals(error.getName())) {
+            return ResponseEntity.badRequest().body(new ErrorRespuesta("La fecha final debe tener formato YYYY-MM-DD."));
+        }
         return ResponseEntity.badRequest().body(new ErrorRespuesta(
                 "El ID del producto debe tener formato UUID."));
     }

@@ -2,6 +2,8 @@ package com.puntoypapel.inventario;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.UUID;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -79,5 +81,43 @@ class VentaApiTest {
                 .build().perform(get("/api/ventas"))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
         assertEquals(1, mapper.readTree(respuesta).size());
+    }
+
+    @Test
+    void filtraHistorialPorProductoYFecha() throws Exception {
+        Inventario inventario = new Inventario(new AlmacenProductosMemoria());
+        Producto primero = new Producto("Pluma", 12.0, 4);
+        Producto segundo = new Producto("Goma", 5.0, 4);
+        inventario.registrarProducto(primero);
+        inventario.registrarProducto(segundo);
+        AlmacenVentasMemoria almacen = new AlmacenVentasMemoria();
+        var api = api(inventario, almacen);
+        api.perform(post("/api/ventas/productos/{id}", primero.getId())
+                        .contentType(APPLICATION_JSON).content("{\"cantidad\":1}"))
+                .andExpect(status().isCreated());
+        api.perform(post("/api/ventas/productos/{id}", segundo.getId())
+                        .contentType(APPLICATION_JSON).content("{\"cantidad\":1}"))
+                .andExpect(status().isCreated());
+        String hoy = LocalDate.now(ZoneOffset.UTC).toString();
+
+        var respuesta = api.perform(get("/api/ventas")
+                        .param("productoId", primero.getId().toString())
+                        .param("desde", hoy).param("hasta", hoy))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+
+        var ventas = mapper.readTree(respuesta);
+        assertEquals(1, ventas.size());
+        assertEquals(primero.getId().toString(), ventas.get(0).get("productoId").asText());
+    }
+
+    @Test
+    void rechazaRangoDeFechasInvertido() throws Exception {
+        Inventario inventario = new Inventario(new AlmacenProductosMemoria());
+        var respuesta = api(inventario, new AlmacenVentasMemoria())
+                .perform(get("/api/ventas").param("desde", "2026-10-20").param("hasta", "2026-10-19"))
+                .andExpect(status().isBadRequest()).andReturn().getResponse().getContentAsString();
+
+        assertEquals("La fecha inicial debe ser anterior a la fecha final.",
+                mapper.readTree(respuesta).get("mensaje").asText());
     }
 }

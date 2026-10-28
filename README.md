@@ -24,7 +24,7 @@ Proyecto en desarrollo. Actualmente incluye:
 - PostgreSQL 17
 - Flyway
 
-Los productos ya se guardan en PostgreSQL. La lógica de ventas todavía funciona en memoria; su persistencia y sus endpoints serán una etapa posterior.
+Los productos y las ventas ya se guardan en PostgreSQL mediante transacciones.
 
 ## Ejecutar las pruebas
 
@@ -40,7 +40,7 @@ mvn test
 - `GET /api/productos/{id}` — consulta un producto por su identificador UUID.
 - `PUT /api/productos/{id}` — actualiza nombre, precio y existencias conservando el ID.
 - `POST /api/ventas/productos/{productoId}` — registra una venta y descuenta existencias.
-- `GET /api/ventas` — consulta el historial de ventas.
+- `GET /api/ventas` — consulta el historial de ventas, con filtros opcionales.
 
 ### Registrar y consultar un producto por ID
 
@@ -104,6 +104,16 @@ precio vigentes en el momento de la operación.
 Una cantidad cero, negativa, ausente o mayor que las existencias devuelve `400` y
 no modifica el inventario ni crea una venta. Si el producto no existe, devuelve
 `404`. El historial completo se consulta con `GET /api/ventas`.
+
+Puedes filtrar el historial por producto y por fechas inclusivas:
+
+```bash
+curl 'http://localhost:8080/api/ventas?productoId=REEMPLAZA_CON_EL_ID&desde=2026-10-01&hasta=2026-10-31'
+```
+
+`productoId` usa un UUID. `desde` y `hasta` usan el formato `YYYY-MM-DD` y ambos
+días se incluyen en la búsqueda. Los resultados se ordenan del más reciente al
+más antiguo. Un rango invertido o una fecha con formato inválido devuelve `400`.
 
 ### Validación del registro y la actualización de productos
 

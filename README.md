@@ -222,6 +222,11 @@ los cambios se envían a la misma API REST y se guardan en PostgreSQL.
 La interfaz se sirve desde `src/main/resources/static` y no requiere un servidor
 frontend separado.
 
+La pantalla web inicia con un formulario de acceso. Después del login conserva
+las credenciales únicamente en `sessionStorage` para enviar HTTP Basic a las
+llamadas protegidas; al cerrar sesión se eliminan. La interfaz también oculta
+las acciones administrativas para usuarios con rol `VENDEDOR`.
+
 ## Usuarios y roles
 
 La base de datos ya incluye la tabla `usuarios`, con nombre de usuario único,

@@ -16,6 +16,89 @@ const filterProduct = document.querySelector('#filter-producto');
 const filterFrom = document.querySelector('#filter-desde');
 const filterTo = document.querySelector('#filter-hasta');
 const salesList = document.querySelector('#sales-list');
+const loginPanel = document.querySelector('#login-panel');
+const appContent = document.querySelector('#app-content');
+const loginForm = document.querySelector('#login-form');
+const loginUser = document.querySelector('#login-user');
+const loginPassword = document.querySelector('#login-password');
+const loginMessage = document.querySelector('#login-message');
+const currentUserBadge = document.querySelector('#current-user');
+const logoutButton = document.querySelector('#logout');
+let currentUser = null;
+
+function authHeader() {
+  const credentials = sessionStorage.getItem('punto-papel-credentials');
+  return credentials ? { Authorization: `Basic ${credentials}` } : {};
+}
+
+function toBase64(value) {
+  const bytes = new TextEncoder().encode(value);
+  let binary = '';
+  bytes.forEach(byte => { binary += String.fromCharCode(byte); });
+  return btoa(binary);
+}
+
+async function apiFetch(url, options = {}) {
+  const headers = { ...(options.headers || {}), ...authHeader() };
+  const response = await fetch(url, { ...options, headers });
+  if (response.status === 401) {
+    endSession('La sesión expiró. Vuelve a iniciar sesión.');
+  }
+  return response;
+}
+
+function endSession(messageText = '') {
+  sessionStorage.removeItem('punto-papel-credentials');
+  sessionStorage.removeItem('punto-papel-user');
+  currentUser = null;
+  appContent.classList.add('hidden');
+  loginPanel.classList.remove('hidden');
+  currentUserBadge.classList.add('hidden');
+  logoutButton.classList.add('hidden');
+  if (messageText) {
+    loginMessage.textContent = messageText;
+    loginMessage.classList.add('error');
+  }
+}
+
+function startSession(credentials, user) {
+  sessionStorage.setItem('punto-papel-credentials', credentials);
+  sessionStorage.setItem('punto-papel-user', JSON.stringify(user));
+  currentUser = user;
+  loginPanel.classList.add('hidden');
+  appContent.classList.remove('hidden');
+  currentUserBadge.textContent = `${user.nombreUsuario} · ${user.rol}`;
+  currentUserBadge.classList.remove('hidden');
+  logoutButton.classList.remove('hidden');
+  document.querySelectorAll('.admin-only').forEach(element => {
+    element.classList.toggle('hidden', user.rol !== 'ADMIN');
+  });
+}
+
+loginForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  loginMessage.textContent = 'Validando…';
+  loginMessage.classList.remove('error');
+  const username = loginUser.value.trim();
+  const password = loginPassword.value;
+  try {
+    const response = await fetch('/api/usuarios/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombreUsuario: username, password })
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.mensaje || 'No se pudo iniciar sesión.');
+    startSession(toBase64(`${username.toLowerCase()}:${password}`), body);
+    loginForm.reset();
+    await loadProducts();
+    await loadSales();
+  } catch (error) {
+    loginMessage.textContent = error.message;
+    loginMessage.classList.add('error');
+  }
+});
+
+logoutButton.addEventListener('click', () => endSession());
 
 const fields = {
   id: document.querySelector('#producto-id'),
@@ -37,11 +120,14 @@ function renderProducts(products) {
   loading.classList.toggle('hidden', products.length > 0);
   loading.textContent = products.length ? '' : 'Aún no hay productos registrados.';
   count.textContent = `${products.length} ${products.length === 1 ? 'producto' : 'productos'}`;
+  const editButton = currentUser?.rol === 'ADMIN'
+    ? product => `<button class="button edit" type="button" data-edit="${product.id}">Editar</button>`
+    : () => '';
   productList.innerHTML = products.map(product => `
     <article class="product-card">
       <h3>${escapeHtml(product.nombre)}</h3>
       <div class="product-meta"><span class="product-price">${formatPrice(product.precio)}</span><span class="stock">${product.existencias} disponibles</span></div>
-      <button class="button edit" type="button" data-edit="${product.id}">Editar</button>
+      ${editButton(product)}
     </article>`).join('');
   productList.querySelectorAll('[data-edit]').forEach(button => {
     button.addEventListener('click', () => editProduct(products.find(item => item.id === button.dataset.edit)));
@@ -57,7 +143,7 @@ function escapeHtml(value) {
 
 async function loadProducts() {
   try {
-    const response = await fetch('/api/productos');
+    const response = await apiFetch('/api/productos');
     if (!response.ok) throw new Error('No se pudieron cargar los productos.');
     renderProducts(await response.json());
   } catch (error) {
@@ -90,7 +176,7 @@ function renderSummary(summary) {
 async function loadSales() {
   const query = queryString();
   try {
-    const [salesResponse, summaryResponse] = await Promise.all([fetch(`/api/ventas${query}`), fetch(`/api/ventas/resumen${query}`)]);
+    const [salesResponse, summaryResponse] = await Promise.all([apiFetch(`/api/ventas${query}`), apiFetch(`/api/ventas/resumen${query}`)]);
     const sales = await salesResponse.json();
     const summary = await summaryResponse.json();
     if (!salesResponse.ok || !summaryResponse.ok) throw new Error(summary.mensaje || 'No se pudo cargar el historial.');
@@ -133,7 +219,7 @@ form.addEventListener('submit', async event => {
   saveButton.disabled = true;
   showMessage('Guardando…');
   try {
-    const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const response = await apiFetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.mensaje || 'No se pudo guardar el producto.');
     resetForm();
@@ -152,7 +238,7 @@ saleForm.addEventListener('submit', async event => {
   saleMessage.textContent = 'Guardando…';
   saleMessage.classList.remove('error');
   try {
-    const response = await fetch(`/api/ventas/productos/${saleProduct.value}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cantidad: Number(saleQuantity.value) }) });
+    const response = await apiFetch(`/api/ventas/productos/${saleProduct.value}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cantidad: Number(saleQuantity.value) }) });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.mensaje || 'No se pudo registrar la venta.');
     saleForm.reset();
@@ -168,4 +254,13 @@ saleForm.addEventListener('submit', async event => {
 filterForm.addEventListener('submit', event => { event.preventDefault(); loadSales(); });
 document.querySelector('#clear-filters').addEventListener('click', () => { filterForm.reset(); loadSales(); });
 
-loadProducts().then(loadSales);
+const savedCredentials = sessionStorage.getItem('punto-papel-credentials');
+const savedUser = sessionStorage.getItem('punto-papel-user');
+if (savedCredentials && savedUser) {
+  try {
+    startSession(savedCredentials, JSON.parse(savedUser));
+    loadProducts().then(loadSales);
+  } catch (error) {
+    endSession();
+  }
+}

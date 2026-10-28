@@ -12,11 +12,28 @@
       <p class="eyebrow">Punto &amp; Papel</p>
       <h1>Inventario</h1>
     </div>
-    <a class="api-link" href="/api/productos" target="_blank" rel="noreferrer">Ver API</a>
+    <div class="account-actions">
+      <span id="current-user" class="badge hidden"></span>
+      <button id="logout" class="button secondary hidden" type="button">Cerrar sesión</button>
+      <a class="api-link" href="/api/productos" target="_blank" rel="noreferrer">Ver API</a>
+    </div>
   </header>
 
-  <main class="layout">
-    <section class="panel form-panel">
+  <section id="login-panel" class="panel login-panel">
+    <p class="eyebrow">Acceso seguro</p>
+    <h2>Iniciar sesión</h2>
+    <form id="login-form">
+      <label for="login-user">Usuario</label>
+      <input id="login-user" required autocomplete="username">
+      <label for="login-password">Contraseña</label>
+      <input id="login-password" type="password" required autocomplete="current-password">
+      <div class="form-actions"><button class="button primary" type="submit">Entrar</button></div>
+      <p id="login-message" class="message" role="status"></p>
+    </form>
+  </section>
+
+  <main id="app-content" class="layout hidden">
+    <section class="panel form-panel admin-only">
       <div class="panel-heading">
         <div>
           <p class="eyebrow">Catálogo</p>
@@ -80,7 +97,7 @@
   </main>
 
   <section class="reports">
-    <div class="panel">
+    <div class="panel admin-only">
       <div class="panel-heading">
         <div><p class="eyebrow">Reportes</p><h2>Resumen de ventas</h2></div>
       </div>

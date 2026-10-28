@@ -7,6 +7,15 @@ const cancelButton = document.querySelector('#cancelar');
 const formTitle = document.querySelector('#form-title');
 const formMode = document.querySelector('#form-mode');
 const saveButton = document.querySelector('#guardar');
+const saleForm = document.querySelector('#venta-form');
+const saleProduct = document.querySelector('#venta-producto');
+const saleQuantity = document.querySelector('#venta-cantidad');
+const saleMessage = document.querySelector('#venta-message');
+const filterForm = document.querySelector('#filters-form');
+const filterProduct = document.querySelector('#filter-producto');
+const filterFrom = document.querySelector('#filter-desde');
+const filterTo = document.querySelector('#filter-hasta');
+const salesList = document.querySelector('#sales-list');
 
 const fields = {
   id: document.querySelector('#producto-id'),
@@ -37,6 +46,9 @@ function renderProducts(products) {
   productList.querySelectorAll('[data-edit]').forEach(button => {
     button.addEventListener('click', () => editProduct(products.find(item => item.id === button.dataset.edit)));
   });
+  const options = products.length ? products.map(product => `<option value="${product.id}">${escapeHtml(product.nombre)} · ${product.existencias} disponibles</option>`).join('') : '<option value="">No hay productos</option>';
+  saleProduct.innerHTML = options;
+  filterProduct.innerHTML = '<option value="">Todos los productos</option>' + products.map(product => `<option value="${product.id}">${escapeHtml(product.nombre)}</option>`).join('');
 }
 
 function escapeHtml(value) {
@@ -51,6 +63,41 @@ async function loadProducts() {
   } catch (error) {
     loading.classList.remove('hidden');
     loading.textContent = error.message;
+  }
+}
+
+function queryString() {
+  const params = new URLSearchParams();
+  if (filterProduct.value) params.set('productoId', filterProduct.value);
+  if (filterFrom.value) params.set('desde', filterFrom.value);
+  if (filterTo.value) params.set('hasta', filterTo.value);
+  return params.toString() ? `?${params}` : '';
+}
+
+function renderSales(sales) {
+  salesList.innerHTML = sales.length ? sales.map(sale => `
+    <div class="sale-row"><div><strong>${escapeHtml(sale.nombreProducto)}</strong><small>${new Date(sale.fecha).toLocaleString('es-MX')} · ${sale.cantidad} unidades</small></div><strong>${formatPrice(sale.total)}</strong></div>`).join('') : '<p class="empty-state">No hay ventas para estos filtros.</p>';
+}
+
+function renderSummary(summary) {
+  document.querySelector('#summary-sales').textContent = summary.totalVentas;
+  document.querySelector('#summary-units').textContent = summary.unidadesVendidas;
+  document.querySelector('#summary-total').textContent = formatPrice(summary.importeTotal);
+  document.querySelector('#summary-products').innerHTML = summary.porProducto.length ? summary.porProducto.map(item => `
+    <div class="summary-product"><span>${escapeHtml(item.nombreProducto)} · ${item.unidadesVendidas} unidades</span><strong>${formatPrice(item.importeTotal)}</strong></div>`).join('') : '<p class="empty-state">Todavía no hay ventas.</p>';
+}
+
+async function loadSales() {
+  const query = queryString();
+  try {
+    const [salesResponse, summaryResponse] = await Promise.all([fetch(`/api/ventas${query}`), fetch(`/api/ventas/resumen${query}`)]);
+    const sales = await salesResponse.json();
+    const summary = await summaryResponse.json();
+    if (!salesResponse.ok || !summaryResponse.ok) throw new Error(summary.mensaje || 'No se pudo cargar el historial.');
+    renderSales(sales);
+    renderSummary(summary);
+  } catch (error) {
+    salesList.innerHTML = `<p class="message error">${escapeHtml(error.message)}</p>`;
   }
 }
 
@@ -100,4 +147,25 @@ form.addEventListener('submit', async event => {
 });
 
 cancelButton.addEventListener('click', resetForm);
-loadProducts();
+saleForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  saleMessage.textContent = 'Guardando…';
+  saleMessage.classList.remove('error');
+  try {
+    const response = await fetch(`/api/ventas/productos/${saleProduct.value}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cantidad: Number(saleQuantity.value) }) });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.mensaje || 'No se pudo registrar la venta.');
+    saleForm.reset();
+    saleMessage.textContent = 'Venta registrada correctamente.';
+    await loadProducts();
+    await loadSales();
+  } catch (error) {
+    saleMessage.textContent = error.message;
+    saleMessage.classList.add('error');
+  }
+});
+
+filterForm.addEventListener('submit', event => { event.preventDefault(); loadSales(); });
+document.querySelector('#clear-filters').addEventListener('click', () => { filterForm.reset(); loadSales(); });
+
+loadProducts().then(loadSales);

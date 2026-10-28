@@ -49,6 +49,23 @@
       </form>
     </section>
 
+    <section class="panel sales-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Operación</p>
+          <h2>Registrar venta</h2>
+        </div>
+      </div>
+      <form id="venta-form">
+        <label for="venta-producto">Producto</label>
+        <select id="venta-producto" required></select>
+        <label for="venta-cantidad">Cantidad</label>
+        <input id="venta-cantidad" type="number" min="1" step="1" required placeholder="1">
+        <div class="form-actions"><button class="button primary" type="submit">Registrar venta</button></div>
+        <p id="venta-message" class="message" role="status"></p>
+      </form>
+    </section>
+
     <section class="panel catalog-panel">
       <div class="panel-heading">
         <div>
@@ -61,6 +78,34 @@
       <div id="product-list" class="product-list" aria-live="polite"></div>
     </section>
   </main>
+
+  <section class="reports">
+    <div class="panel">
+      <div class="panel-heading">
+        <div><p class="eyebrow">Reportes</p><h2>Resumen de ventas</h2></div>
+      </div>
+      <div class="summary-grid">
+        <div class="summary-card"><span>Operaciones</span><strong id="summary-sales">0</strong></div>
+        <div class="summary-card"><span>Unidades</span><strong id="summary-units">0</strong></div>
+        <div class="summary-card"><span>Importe total</span><strong id="summary-total">$0.00</strong></div>
+      </div>
+      <div id="summary-products" class="summary-products"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-heading">
+        <div><p class="eyebrow">Historial</p><h2>Ventas recientes</h2></div>
+      </div>
+      <form id="filters-form" class="filters">
+        <select id="filter-producto"><option value="">Todos los productos</option></select>
+        <input id="filter-desde" type="date" aria-label="Desde">
+        <input id="filter-hasta" type="date" aria-label="Hasta">
+        <button class="button secondary" type="submit">Filtrar</button>
+        <button id="clear-filters" class="button secondary" type="button">Limpiar</button>
+      </form>
+      <div id="sales-list" class="sales-list"><p class="empty-state">Cargando ventas…</p></div>
+    </div>
+  </section>
 
   <script src="/app.js" defer></script>
 </body>

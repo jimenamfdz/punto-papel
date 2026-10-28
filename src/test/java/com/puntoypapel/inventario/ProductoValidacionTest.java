@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -63,12 +64,14 @@ class ProductoValidacionTest {
                         jsonInvalido),
                 new Caso("existencias de tipo incorrecto", "{\"nombre\":\"Cuaderno\",\"precio\":20,\"existencias\":{}}",
                         jsonInvalido)
-        ).stream().map(caso -> DynamicTest.dynamicTest(caso.descripcion(), () -> {
+        ).stream().flatMap(caso -> Stream.of(false, true).map(actualizar -> DynamicTest.dynamicTest(
+                (actualizar ? "actualizar: " : "registrar: ") + caso.descripcion(), () -> {
             Inventario inventario = new Inventario();
             Producto existente = new Producto("Lápiz", 8.5, 20);
             inventario.registrarProducto(existente);
 
-            var respuesta = api(inventario).perform(post("/api/productos")
+            var peticion = actualizar ? put("/api/productos/{id}", existente.getId()) : post("/api/productos");
+            var respuesta = api(inventario).perform(peticion
                             .contentType(APPLICATION_JSON).content(caso.json()))
                     .andExpect(status().isBadRequest())
                     .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
@@ -78,7 +81,10 @@ class ProductoValidacionTest {
             assertEquals(mapper.valueToTree(java.util.Map.of("mensaje", caso.mensaje())),
                     mapper.readTree(respuesta));
             assertEquals(List.of(existente), inventario.getProductos());
-        }));
+            assertEquals("Lápiz", existente.getNombre());
+            assertEquals(8.5, existente.getPrecio());
+            assertEquals(20, existente.getExistencias());
+        })));
     }
 
     @Test

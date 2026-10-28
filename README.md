@@ -34,6 +34,7 @@ mvn test
 - `GET /api/productos`
 - `POST /api/productos`
 - `GET /api/productos/{id}` — consulta un producto por su identificador UUID.
+- `PUT /api/productos/{id}` — actualiza nombre, precio y existencias conservando el ID.
 
 ### Registrar y consultar un producto por ID
 
@@ -61,9 +62,28 @@ no está registrado y `400 Bad Request` si el identificador tiene un formato inv
 Los productos y sus IDs se conservan únicamente en memoria durante la ejecución.
 Al reiniciar la aplicación el inventario queda vacío.
 
-### Validación del registro de productos
+### Actualizar un producto
 
-`POST /api/productos` requiere los tres campos: `nombre`, `precio` y `existencias`.
+Usa el ID de un producto ya registrado y envía los tres campos:
+
+```bash
+curl -i -X PUT http://localhost:8080/api/productos/REEMPLAZA_CON_EL_ID \
+  -H 'Content-Type: application/json' \
+  -d '{"nombre":"Cuaderno profesional","precio":45.5,"existencias":15}'
+```
+
+La respuesta es `200 OK` con el producto actualizado y su mismo `id`. El valor de
+`existencias` reemplaza el total actual; no se suma al inventario. La consulta por
+ID y el listado reflejan los nuevos datos. No se crea un producto adicional.
+
+Si el ID no existe, devuelve `404 Not Found`. Un ID mal formado o datos inválidos
+devuelven `400 Bad Request`. Si la actualización se rechaza, el producto conserva
+todos sus valores anteriores.
+
+### Validación del registro y la actualización de productos
+
+Tanto `POST /api/productos` como `PUT /api/productos/{id}` requieren los tres campos:
+`nombre`, `precio` y `existencias`.
 El nombre no puede estar vacío ni contener solo espacios, el precio debe ser un
 número finito mayor que cero y las existencias no pueden ser negativas. Las
 existencias en cero son válidas. Los campos omitidos o con valor `null` se rechazan.

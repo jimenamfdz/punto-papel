@@ -9,6 +9,10 @@ public class Producto {
     private int existencias;
 
     public Producto(String nombre, double precio, int existencias) {
+        actualizar(nombre, precio, existencias);
+    }
+
+    public void actualizar(String nombre, double precio, int existencias) {
         if (nombre == null || nombre.isBlank()) {
             throw new IllegalArgumentException("El nombre no puede estar vacío.");
         }

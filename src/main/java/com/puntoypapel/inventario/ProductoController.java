@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +29,16 @@ public class ProductoController {
     @GetMapping("/{id}")
     public ResponseEntity<Producto> buscarProductoPorId(@PathVariable("id") UUID id) {
         return ResponseEntity.of(inventario.buscarPorId(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Producto> actualizarProducto(
+            @PathVariable("id") UUID id, @RequestBody ProductoRequest solicitud) {
+        solicitud.validarCamposObligatorios();
+        return ResponseEntity.of(inventario.buscarPorId(id).map(producto -> {
+            producto.actualizar(solicitud.nombre(), solicitud.precio(), solicitud.existencias());
+            return producto;
+        }));
     }
 
     @PostMapping

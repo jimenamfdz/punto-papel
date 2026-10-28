@@ -17,6 +17,8 @@ public class Producto {
     private double precio;
     @Column(nullable = false)
     private int existencias;
+    @Column(name = "stock_minimo", nullable = false)
+    private int stockMinimo;
 
     protected Producto() {
         // Requerido por JPA para recuperar productos de la base de datos.
@@ -55,6 +57,23 @@ public class Producto {
 
     public double getPrecio() {
         return precio;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonInclude(
+            com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT)
+    public int getStockMinimo() {
+        return stockMinimo;
+    }
+
+    public void configurarStockMinimo(int stockMinimo) {
+        if (stockMinimo < 0) {
+            throw new IllegalArgumentException("El stock mínimo no puede ser negativo.");
+        }
+        this.stockMinimo = stockMinimo;
+    }
+
+    public boolean tieneStockBajo() {
+        return existencias <= stockMinimo;
     }
 
     public void agregarExistencias(int cantidad) {

@@ -24,6 +24,12 @@ public class Inventario {
         return List.copyOf(productos.findAll());
     }
 
+    public List<Producto> getProductosConStockBajo() {
+        return productos.findAll().stream()
+                .filter(Producto::tieneStockBajo)
+                .toList();
+    }
+
     public Optional<Producto> buscarPorId(UUID id) {
         return productos.findById(id);
     }
@@ -32,6 +38,14 @@ public class Inventario {
     public Optional<Producto> actualizarProducto(UUID id, String nombre, double precio, int existencias) {
         return productos.findById(id).map(producto -> {
             producto.actualizar(nombre, precio, existencias);
+            return productos.save(producto);
+        });
+    }
+
+    @Transactional
+    public Optional<Producto> actualizarStockMinimo(UUID id, int stockMinimo) {
+        return productos.findById(id).map(producto -> {
+            producto.configurarStockMinimo(stockMinimo);
             return productos.save(producto);
         });
     }

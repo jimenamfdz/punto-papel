@@ -32,6 +32,7 @@ public class ProductoController {
 
     @PostMapping
     public ResponseEntity<Producto> registrarProducto(@RequestBody ProductoRequest solicitud) {
+        solicitud.validarCamposObligatorios();
         Producto producto = new Producto(
                 solicitud.nombre(),
                 solicitud.precio(),

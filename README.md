@@ -226,8 +226,21 @@ frontend separado.
 
 La base de datos ya incluye la tabla `usuarios`, con nombre de usuario único,
 contraseña almacenada como hash, estado activo y uno de estos roles: `ADMIN` o
-`VENDEDOR`. Esta etapa solo prepara el modelo y la migración; el registro, inicio
-de sesión y protección de endpoints se agregarán en los pasos siguientes.
+`VENDEDOR`.
+
+Para registrar un usuario envía una contraseña de al menos ocho caracteres a
+`POST /api/usuarios`:
+
+```bash
+curl -i -X POST http://localhost:8080/api/usuarios \
+  -H 'Content-Type: application/json' \
+  -d '{"nombreUsuario":"ana","password":"secreto123","rol":"VENDEDOR"}'
+```
+
+La respuesta devuelve el identificador, nombre normalizado, rol, estado y fecha
+de creación, pero nunca la contraseña ni su hash. Las contraseñas se almacenan
+con BCrypt y los nombres de usuario duplicados (sin distinguir mayúsculas) se
+rechazan.
 
 Nunca se guardarán contraseñas en texto plano ni dentro del repositorio.
 

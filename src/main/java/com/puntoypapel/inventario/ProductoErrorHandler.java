@@ -6,7 +6,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-@RestControllerAdvice(assignableTypes = {ProductoController.class, VentaController.class})
+@RestControllerAdvice(assignableTypes = {
+        ProductoController.class, VentaController.class, UsuarioController.class})
 public class ProductoErrorHandler {
 
     public record ErrorRespuesta(String mensaje) {

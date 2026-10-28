@@ -222,6 +222,15 @@ los cambios se envían a la misma API REST y se guardan en PostgreSQL.
 La interfaz se sirve desde `src/main/resources/static` y no requiere un servidor
 frontend separado.
 
+## Usuarios y roles
+
+La base de datos ya incluye la tabla `usuarios`, con nombre de usuario único,
+contraseña almacenada como hash, estado activo y uno de estos roles: `ADMIN` o
+`VENDEDOR`. Esta etapa solo prepara el modelo y la migración; el registro, inicio
+de sesión y protección de endpoints se agregarán en los pasos siguientes.
+
+Nunca se guardarán contraseñas en texto plano ni dentro del repositorio.
+
 Spring Boot recibe las variables del entorno; no carga `.env` por sí solo.
 Al iniciar, Flyway aplica `V1__crear_productos.sql` una sola vez. Hibernate valida
 que el esquema corresponda a las entidades, sin borrar ni recrear tablas.

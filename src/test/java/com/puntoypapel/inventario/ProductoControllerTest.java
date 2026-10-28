@@ -24,7 +24,7 @@ class ProductoControllerTest {
 
     @Test
     void listaProductosEnFormatoJson() throws Exception {
-        Inventario inventario = new Inventario();
+        Inventario inventario = new Inventario(new AlmacenProductosMemoria());
         Producto producto = new Producto("Cuaderno", 20.0, 10);
         inventario.registrarProducto(producto);
         MockMvc mockMvc = MockMvcBuilders
@@ -39,7 +39,7 @@ class ProductoControllerTest {
 
     @Test
     void registraProductoDesdeJson() throws Exception {
-        Inventario inventario = new Inventario();
+        Inventario inventario = new Inventario(new AlmacenProductosMemoria());
         MockMvc mockMvc = MockMvcBuilders
                 .standaloneSetup(new ProductoController(inventario))
                 .build();
@@ -65,7 +65,7 @@ class ProductoControllerTest {
 
     @Test
     void buscaElProductoCorrectoPorIdAunqueSeRepitaElNombre() throws Exception {
-        Inventario inventario = new Inventario();
+        Inventario inventario = new Inventario(new AlmacenProductosMemoria());
         inventario.registrarProducto(new Producto("Cuaderno", 20.0, 10));
         Producto producto = new Producto("Cuaderno", 35.0, 5);
         inventario.registrarProducto(producto);
@@ -81,7 +81,7 @@ class ProductoControllerTest {
 
     @Test
     void devuelve404SiElIdNoExiste() throws Exception {
-        Inventario inventario = new Inventario();
+        Inventario inventario = new Inventario(new AlmacenProductosMemoria());
         inventario.registrarProducto(new Producto("Cuaderno", 20.0, 10));
         MockMvc mockMvc = MockMvcBuilders
                 .standaloneSetup(new ProductoController(inventario))
@@ -94,7 +94,7 @@ class ProductoControllerTest {
     @Test
     void devuelve400SiElIdTieneFormatoInvalido() throws Exception {
         MockMvc mockMvc = MockMvcBuilders
-                .standaloneSetup(new ProductoController(new Inventario()))
+                .standaloneSetup(new ProductoController(new Inventario(new AlmacenProductosMemoria())))
                 .build();
 
         mockMvc.perform(get("/api/productos/no-es-un-uuid"))

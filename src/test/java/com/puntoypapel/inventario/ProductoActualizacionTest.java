@@ -23,7 +23,7 @@ class ProductoActualizacionTest {
 
     @Test
     void actualizaSoloElProductoElegidoConservandoSuId() throws Exception {
-        Inventario inventario = new Inventario();
+        Inventario inventario = new Inventario(new AlmacenProductosMemoria());
         Producto producto = new Producto("Cuaderno", 20.0, 10);
         Producto otro = new Producto("Cuaderno", 35.0, 5);
         inventario.registrarProducto(producto);
@@ -58,7 +58,7 @@ class ProductoActualizacionTest {
 
     @Test
     void devuelve404SinCrearProductoSiElIdNoExiste() throws Exception {
-        Inventario inventario = new Inventario();
+        Inventario inventario = new Inventario(new AlmacenProductosMemoria());
         Producto producto = new Producto("Lápiz", 8.5, 20);
         inventario.registrarProducto(producto);
 
@@ -75,7 +75,7 @@ class ProductoActualizacionTest {
 
     @Test
     void rechazaIdConFormatoInvalido() throws Exception {
-        Inventario inventario = new Inventario();
+        Inventario inventario = new Inventario(new AlmacenProductosMemoria());
         var respuesta = api(inventario).perform(put("/api/productos/id-invalido")
                         .contentType(APPLICATION_JSON)
                         .content("{\"nombre\":\"Cuaderno\",\"precio\":20,\"existencias\":10}"))

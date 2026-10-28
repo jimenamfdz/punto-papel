@@ -1,27 +1,39 @@
 package com.puntoypapel.inventario;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-@Component
+@Service
+@Transactional(readOnly = true)
 public class Inventario {
-    private final List<Producto> productos = new ArrayList<>();
+    private final AlmacenProductos productos;
 
+    public Inventario(AlmacenProductos productos) {
+        this.productos = productos;
+    }
+
+    @Transactional
     public void registrarProducto(Producto producto) {
-        productos.add(producto);
+        productos.save(producto);
     }
 
     public List<Producto> getProductos() {
-        return List.copyOf(productos);
+        return List.copyOf(productos.findAll());
     }
 
     public Optional<Producto> buscarPorId(UUID id) {
-        return productos.stream()
-                .filter(producto -> producto.getId().equals(id))
-                .findFirst();
+        return productos.findById(id);
+    }
+
+    @Transactional
+    public Optional<Producto> actualizarProducto(UUID id, String nombre, double precio, int existencias) {
+        return productos.findById(id).map(producto -> {
+            producto.actualizar(nombre, precio, existencias);
+            return productos.save(producto);
+        });
     }
 
     public Optional<Producto> buscarPorNombre(String nombre) {
@@ -30,7 +42,7 @@ public class Inventario {
         }
 
         String nombreNormalizado = nombre.trim().toLowerCase();
-        return productos.stream()
+        return productos.findAll().stream()
                 .filter(producto -> producto.getNombre().trim().toLowerCase().equals(nombreNormalizado))
                 .findFirst();
     }

@@ -10,7 +10,7 @@ class InventarioTest {
 
     @Test
     void buscaPorIdAunqueLosProductosTenganElMismoNombre() {
-        Inventario inventario = new Inventario();
+        Inventario inventario = new Inventario(new AlmacenProductosMemoria());
         Producto primero = new Producto("Cuaderno", 20.0, 10);
         Producto segundo = new Producto("Cuaderno", 35.0, 5);
         inventario.registrarProducto(primero);
@@ -22,7 +22,7 @@ class InventarioTest {
 
     @Test
     void buscarIdInexistenteDevuelveResultadoVacio() {
-        Inventario inventario = new Inventario();
+        Inventario inventario = new Inventario(new AlmacenProductosMemoria());
         inventario.registrarProducto(new Producto("Cuaderno", 20.0, 10));
 
         assertTrue(inventario.buscarPorId(UUID.randomUUID()).isEmpty());
@@ -30,14 +30,14 @@ class InventarioTest {
 
     @Test
     void inventarioComienzaVacio() {
-        Inventario inventario = new Inventario();
+        Inventario inventario = new Inventario(new AlmacenProductosMemoria());
 
         assertEquals(0, inventario.getProductos().size());
     }
 
     @Test
     void inventarioRegistraUnProducto() {
-        Inventario inventario = new Inventario();
+        Inventario inventario = new Inventario(new AlmacenProductosMemoria());
         Producto producto = new Producto("Cuaderno", 20.0, 10);
 
         inventario.registrarProducto(producto);
@@ -48,7 +48,7 @@ class InventarioTest {
 
     @Test
     void buscaProductoSinDistinguirMayusculasNiEspacios() {
-        Inventario inventario = new Inventario();
+        Inventario inventario = new Inventario(new AlmacenProductosMemoria());
         inventario.registrarProducto(new Producto("Cuaderno", 20.0, 10));
 
         var resultado = inventario.buscarPorNombre("  CUADERNO ");
@@ -59,7 +59,7 @@ class InventarioTest {
 
     @Test
     void devuelveResultadoVacioCuandoNoEncuentraProducto() {
-        Inventario inventario = new Inventario();
+        Inventario inventario = new Inventario(new AlmacenProductosMemoria());
 
         var resultado = inventario.buscarPorNombre("Lápiz");
 

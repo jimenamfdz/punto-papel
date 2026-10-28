@@ -35,10 +35,8 @@ public class ProductoController {
     public ResponseEntity<Producto> actualizarProducto(
             @PathVariable("id") UUID id, @RequestBody ProductoRequest solicitud) {
         solicitud.validarCamposObligatorios();
-        return ResponseEntity.of(inventario.buscarPorId(id).map(producto -> {
-            producto.actualizar(solicitud.nombre(), solicitud.precio(), solicitud.existencias());
-            return producto;
-        }));
+        return ResponseEntity.of(inventario.actualizarProducto(
+                id, solicitud.nombre(), solicitud.precio(), solicitud.existencias()));
     }
 
     @PostMapping

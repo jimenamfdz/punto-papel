@@ -9,7 +9,8 @@ Proyecto en desarrollo. Actualmente incluye:
 - Registro y búsqueda de productos.
 - Entradas y salidas de inventario.
 - Registro de ventas y cálculo de totales.
-- API REST inicial con Spring Boot.
+- API REST con registro, consulta y actualización de productos.
+- Persistencia de productos en PostgreSQL y migraciones versionadas con Flyway.
 - Pruebas unitarias y pruebas de controladores con JUnit.
 
 ## Tecnologías
@@ -19,8 +20,11 @@ Proyecto en desarrollo. Actualmente incluye:
 - Spring Boot 3.4.5
 - JUnit 5
 - Spring MVC
+- Spring Data JPA / Hibernate
+- PostgreSQL 17
+- Flyway
 
-Todavía no se ha conectado una base de datos. PostgreSQL y JPA/Hibernate forman parte de las siguientes etapas.
+Los productos ya se guardan en PostgreSQL. La lógica de ventas todavía funciona en memoria; su persistencia y sus endpoints serán una etapa posterior.
 
 ## Ejecutar las pruebas
 
@@ -38,7 +42,7 @@ mvn test
 
 ### Registrar y consultar un producto por ID
 
-Inicia la aplicación con `mvn spring-boot:run` y registra un producto:
+Inicia la aplicación con la configuración de PostgreSQL indicada abajo y registra un producto:
 
 ```bash
 curl -X POST http://localhost:8080/api/productos \
@@ -59,8 +63,8 @@ curl -i http://localhost:8080/api/productos/REEMPLAZA_CON_EL_ID
 La consulta devuelve `200 OK` y el producto si existe, `404 Not Found` si el UUID
 no está registrado y `400 Bad Request` si el identificador tiene un formato inválido.
 
-Los productos y sus IDs se conservan únicamente en memoria durante la ejecución.
-Al reiniciar la aplicación el inventario queda vacío.
+Los productos y sus IDs se conservan en PostgreSQL al reiniciar la aplicación.
+La actualización se guarda dentro de una transacción.
 
 ### Actualizar un producto
 
@@ -104,6 +108,105 @@ Si se omiten las existencias, la respuesta es:
 Un cuerpo vacío, JSON mal formado o un tipo de dato incompatible también devuelve
 `400` con un mensaje que solicita un objeto JSON válido. Un ID con formato inválido
 devuelve `400` con el mensaje `El ID del producto debe tener formato UUID.`
+
+## Configurar PostgreSQL local
+
+Se requieren Java 21 o posterior, Maven, Bash y PostgreSQL 17. En macOS con Homebrew:
+
+```bash
+brew install postgresql@17
+bash scripts/postgres-local.sh start
+```
+
+El script crea una instancia exclusiva del proyecto en `.local/postgres`, escucha
+solo en `localhost:5432` y usa contraseñas SCRAM para conexiones TCP. La conexión
+administrativa por socket usa la identidad del usuario del sistema. Si ya tienes
+otro servidor en ese puerto, detén esa instancia o usa tu instalación existente;
+no ejecutes ambas en el mismo puerto. Para otra ruta de instalación, define `PG_BIN`.
+
+En una instalación nueva, crea un usuario de aplicación sin privilegios de
+administración y dos bases. Entra a PostgreSQL con:
+
+```bash
+/opt/homebrew/opt/postgresql@17/bin/psql -h /tmp -d postgres
+```
+
+Dentro de `psql`, ejecuta lo siguiente. `\password` pide la contraseña de forma
+interactiva; no la escribas en los comandos SQL ni la publiques:
+
+```sql
+CREATE ROLE punto_papel LOGIN;
+\password punto_papel
+CREATE DATABASE punto_papel OWNER punto_papel;
+CREATE DATABASE punto_papel_test OWNER punto_papel;
+\q
+```
+
+Solo en una instalación nueva, copia `.env.example` a `.env` y configura la misma
+contraseña. Si `.env` ya existe, conserva su configuración:
+
+```bash
+cp .env.example .env
+chmod 600 .env
+```
+
+`.env` y `.local/` están excluidos de Git. No guardes credenciales en
+`application.properties`. Las variables disponibles son:
+
+| Variable | Uso |
+| --- | --- |
+| `DB_URL` | Conexión PostgreSQL; por defecto `jdbc:postgresql://localhost:5432/punto_papel` |
+| `DB_USERNAME` | Usuario de aplicación; por defecto `punto_papel` |
+| `DB_PASSWORD` | Contraseña obligatoria, sin valor predeterminado |
+| `DB_INTEGRATION_TEST_URL` | Base exclusiva de pruebas: `jdbc:postgresql://localhost:5432/punto_papel_test` |
+
+## Ejecutar la aplicación
+
+Desde la carpeta del proyecto, con `.env` configurado:
+
+```bash
+bash scripts/postgres-local.sh start
+set -a
+source .env
+set +a
+mvn spring-boot:run
+```
+
+Spring Boot recibe las variables del entorno; no carga `.env` por sí solo.
+Al iniciar, Flyway aplica `V1__crear_productos.sql` una sola vez. Hibernate valida
+que el esquema corresponda a las entidades, sin borrar ni recrear tablas.
+Las siguientes modificaciones del esquema se agregarán como nuevas migraciones.
+
+Para detener la aplicación usa `Ctrl+C`. Para detener la instancia local:
+
+```bash
+bash scripts/postgres-local.sh stop
+```
+
+Los datos quedan guardados en `.local/postgres`; conserva esa carpeta al reiniciar.
+
+## Prueba de persistencia con PostgreSQL
+
+`mvn test` ejecuta las 66 pruebas unitarias sin requerir PostgreSQL. La prueba de
+integración se omite si no se proporciona una URL de pruebas. Para ejecutar las
+67 pruebas, inicia PostgreSQL y carga las variables:
+
+```bash
+bash scripts/postgres-local.sh start
+set -a
+source .env
+set +a
+mvn test
+```
+
+`PersistenciaPostgresTest` solo se activa cuando `DB_INTEGRATION_TEST_URL` apunta a
+una base llamada `punto_papel_test`. Usa HTTP real y reinicia la aplicación dos
+veces para comprobar el registro, la consulta y la actualización conservando el
+UUID. También verifica que una actualización inválida no modifica los datos.
+Elimina únicamente el producto que creó y no utiliza la base `punto_papel`.
+
+Referencias de configuración: [inicialización de bases de datos en Spring Boot](https://docs.spring.io/spring-boot/3.4/how-to/data-initialization.html)
+y [autenticación de PostgreSQL](https://www.postgresql.org/docs/17/auth-password.html).
 
 ## Autoría
 

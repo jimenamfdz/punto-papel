@@ -66,7 +66,7 @@ class ProductoValidacionTest {
                         jsonInvalido)
         ).stream().flatMap(caso -> Stream.of(false, true).map(actualizar -> DynamicTest.dynamicTest(
                 (actualizar ? "actualizar: " : "registrar: ") + caso.descripcion(), () -> {
-            Inventario inventario = new Inventario();
+            Inventario inventario = new Inventario(new AlmacenProductosMemoria());
             Producto existente = new Producto("Lápiz", 8.5, 20);
             inventario.registrarProducto(existente);
 
@@ -89,7 +89,7 @@ class ProductoValidacionTest {
 
     @Test
     void permiteRegistrarProductoConCeroExistencias() throws Exception {
-        Inventario inventario = new Inventario();
+        Inventario inventario = new Inventario(new AlmacenProductosMemoria());
 
         api(inventario).perform(post("/api/productos").contentType(APPLICATION_JSON)
                         .content("{\"nombre\":\"Cuaderno\",\"precio\":0.5,\"existencias\":0}"))
@@ -102,7 +102,7 @@ class ProductoValidacionTest {
 
     @Test
     void devuelveMensajeClaroParaIdInvalido() throws Exception {
-        var respuesta = api(new Inventario()).perform(get("/api/productos/id-invalido"))
+        var respuesta = api(new Inventario(new AlmacenProductosMemoria())).perform(get("/api/productos/id-invalido"))
                 .andExpect(status().isBadRequest())
                 .andReturn().getResponse().getContentAsString();
 

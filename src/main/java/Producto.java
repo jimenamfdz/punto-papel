@@ -1,12 +1,26 @@
 package com.puntoypapel.inventario;
 
 import java.util.UUID;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
+@Entity
+@Table(name = "productos")
 public class Producto {
-    private final UUID id = UUID.randomUUID();
+    @Id
+    private UUID id = UUID.randomUUID();
+    @Column(nullable = false)
     private String nombre;
+    @Column(nullable = false)
     private double precio;
+    @Column(nullable = false)
     private int existencias;
+
+    protected Producto() {
+        // Requerido por JPA para recuperar productos de la base de datos.
+    }
 
     public Producto(String nombre, double precio, int existencias) {
         actualizar(nombre, precio, existencias);

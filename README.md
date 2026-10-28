@@ -39,9 +39,16 @@ mvn test
 - `POST /api/productos`
 - `GET /api/productos/{id}` — consulta un producto por su identificador UUID.
 - `PUT /api/productos/{id}` — actualiza nombre, precio y existencias conservando el ID.
+- `GET /api/productos/stock-bajo` — consulta productos en o por debajo de su stock mínimo.
+- `PATCH /api/productos/{id}/stock-minimo` — configura el stock mínimo de un producto.
 - `POST /api/ventas/productos/{productoId}` — registra una venta y descuenta existencias.
 - `GET /api/ventas` — consulta el historial de ventas, con filtros opcionales.
 - `GET /api/ventas/resumen` — devuelve totales y desglose agrupado por producto.
+
+## Flujo de ramas
+
+`main` contiene la versión estable. Cada función nueva se desarrolla en una rama
+`feature/...`, se prueba y después se integra mediante un Pull Request.
 
 ### Registrar y consultar un producto por ID
 

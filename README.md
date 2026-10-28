@@ -215,6 +215,13 @@ set +a
 mvn spring-boot:run
 ```
 
+Después abre [http://localhost:8080](http://localhost:8080) para usar la interfaz
+de inventario. Esta primera pantalla permite listar, registrar y editar productos;
+los cambios se envían a la misma API REST y se guardan en PostgreSQL.
+
+La interfaz se sirve desde `src/main/resources/static` y no requiere un servidor
+frontend separado.
+
 Spring Boot recibe las variables del entorno; no carga `.env` por sí solo.
 Al iniciar, Flyway aplica `V1__crear_productos.sql` una sola vez. Hibernate valida
 que el esquema corresponda a las entidades, sin borrar ni recrear tablas.

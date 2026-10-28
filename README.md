@@ -33,6 +33,33 @@ mvn test
 - `GET /api/saludo`
 - `GET /api/productos`
 - `POST /api/productos`
+- `GET /api/productos/{id}` — consulta un producto por su identificador UUID.
+
+### Registrar y consultar un producto por ID
+
+Inicia la aplicación con `mvn spring-boot:run` y registra un producto:
+
+```bash
+curl -X POST http://localhost:8080/api/productos \
+  -H 'Content-Type: application/json' \
+  -d '{"nombre":"Cuaderno","precio":20.0,"existencias":10}'
+```
+
+La respuesta incluye un `id` generado automáticamente, además de `nombre`, `precio`
+y `existencias`. El listado de productos también incluye este identificador.
+Dos productos pueden tener el mismo nombre y tendrán IDs diferentes.
+
+Copia el `id` de la respuesta y úsalo en la consulta:
+
+```bash
+curl -i http://localhost:8080/api/productos/REEMPLAZA_CON_EL_ID
+```
+
+La consulta devuelve `200 OK` y el producto si existe, `404 Not Found` si el UUID
+no está registrado y `400 Bad Request` si el identificador tiene un formato inválido.
+
+Los productos y sus IDs se conservan únicamente en memoria durante la ejecución.
+Al reiniciar la aplicación el inventario queda vacío.
 
 ## Autoría
 

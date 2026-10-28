@@ -1,11 +1,32 @@
 package com.puntoypapel.inventario;
 
 import org.junit.jupiter.api.Test;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InventarioTest {
+
+    @Test
+    void buscaPorIdAunqueLosProductosTenganElMismoNombre() {
+        Inventario inventario = new Inventario();
+        Producto primero = new Producto("Cuaderno", 20.0, 10);
+        Producto segundo = new Producto("Cuaderno", 35.0, 5);
+        inventario.registrarProducto(primero);
+        inventario.registrarProducto(segundo);
+
+        assertEquals(primero, inventario.buscarPorId(primero.getId()).orElseThrow());
+        assertEquals(segundo, inventario.buscarPorId(segundo.getId()).orElseThrow());
+    }
+
+    @Test
+    void buscarIdInexistenteDevuelveResultadoVacio() {
+        Inventario inventario = new Inventario();
+        inventario.registrarProducto(new Producto("Cuaderno", 20.0, 10));
+
+        assertTrue(inventario.buscarPorId(UUID.randomUUID()).isEmpty());
+    }
 
     @Test
     void inventarioComienzaVacio() {

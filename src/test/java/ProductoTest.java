@@ -4,8 +4,28 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class ProductoTest {
+
+    @Test
+    void productosIgualesTienenIdsDistintos() {
+        Producto primero = new Producto("Cuaderno", 20.0, 10);
+        Producto segundo = new Producto("Cuaderno", 20.0, 10);
+
+        assertNotEquals(primero.getId(), segundo.getId());
+    }
+
+    @Test
+    void idSeConservaAlModificarExistencias() {
+        Producto producto = new Producto("Cuaderno", 20.0, 10);
+        var id = producto.getId();
+
+        producto.agregarExistencias(5);
+        producto.vender(3);
+
+        assertEquals(id, producto.getId());
+    }
 
     @Test
     void venderTresUnidadesDeDiezDejaSiete() {

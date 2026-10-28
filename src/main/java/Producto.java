@@ -1,6 +1,9 @@
 package com.puntoypapel.inventario;
 
+import java.util.UUID;
+
 public class Producto {
+    private final UUID id = UUID.randomUUID();
     private String nombre;
     private double precio;
     private int existencias;
@@ -18,6 +21,10 @@ public class Producto {
         this.nombre = nombre;
         this.precio = precio;
         this.existencias = existencias;
+    }
+
+    public UUID getId() {
+        return id;
     }
 
     public String getNombre() {

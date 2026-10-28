@@ -1,5 +1,8 @@
 package com.puntoypapel.inventario;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +36,27 @@ public class UsuarioService {
                 .filter(encontrado -> coincideContrasena(solicitud.password(), encontrado))
                 .orElseThrow(CredencialesInvalidasException::new);
         return UsuarioRespuesta.desde(usuario);
+    }
+
+    public List<UsuarioRespuesta> listar() {
+        return usuarios.findAll().stream().map(UsuarioRespuesta::desde).toList();
+    }
+
+    @Transactional
+    public Optional<UsuarioRespuesta> cambiarEstado(UUID id, boolean activo) {
+        return usuarios.findById(id).map(usuario -> {
+            if (activo) usuario.activar(); else usuario.desactivar();
+            return UsuarioRespuesta.desde(usuarios.save(usuario));
+        });
+    }
+
+    @Transactional
+    public Optional<UsuarioRespuesta> cambiarRol(UUID id, Rol rol) {
+        if (rol == null) throw new IllegalArgumentException("El rol es obligatorio.");
+        return usuarios.findById(id).map(usuario -> {
+            usuario.cambiarRol(rol);
+            return UsuarioRespuesta.desde(usuarios.save(usuario));
+        });
     }
 
     boolean coincideContrasena(String password, Usuario usuario) {

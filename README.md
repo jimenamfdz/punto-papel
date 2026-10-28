@@ -227,6 +227,11 @@ las credenciales únicamente en `sessionStorage` para enviar HTTP Basic a las
 llamadas protegidas; al cerrar sesión se eliminan. La interfaz también oculta
 las acciones administrativas para usuarios con rol `VENDEDOR`.
 
+Los administradores pueden gestionar cuentas mediante `GET /api/usuarios`,
+`PATCH /api/usuarios/{id}/estado` con `{"activo":false}` y
+`PATCH /api/usuarios/{id}/rol` con `{"rol":"VENDEDOR"}`. Estas rutas requieren
+autenticación y el rol `ADMIN`.
+
 ## Usuarios y roles
 
 La base de datos ya incluye la tabla `usuarios`, con nombre de usuario único,

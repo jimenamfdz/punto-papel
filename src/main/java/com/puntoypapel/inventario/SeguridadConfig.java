@@ -35,8 +35,11 @@ public class SeguridadConfig {
                 .sessionManagement(sesiones -> sesiones.sessionCreationPolicy(
                         org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(reglas -> reglas
-                        .requestMatchers("/api/usuarios/**", "/api/saludo", "/", "/index.html",
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/usuarios",
+                                "/api/usuarios/login").permitAll()
+                        .requestMatchers("/api/saludo", "/", "/index.html",
                                 "/css/**", "/js/**", "/favicon.ico").permitAll()
+                        .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/productos/**")
                                 .hasAnyRole("ADMIN", "VENDEDOR")
                         .requestMatchers("/api/productos/**").hasRole("ADMIN")

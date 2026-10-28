@@ -10,6 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class UsuarioApiTest {
@@ -105,5 +107,26 @@ class UsuarioApiTest {
                         .contentType(APPLICATION_JSON)
                         .content("{\"nombreUsuario\":\"ana\",\"password\":\"secreto123\"}"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void administradorPuedeListarDesactivarYCambiarRol() throws Exception {
+        AlmacenUsuariosMemoria almacen = new AlmacenUsuariosMemoria();
+        var servicio = new UsuarioService(almacen);
+        UsuarioRespuesta registrado = servicio.registrar(new UsuarioRequest("ana", "secreto123", Rol.VENDEDOR));
+        var api = api(almacen);
+
+        api.perform(get("/api/usuarios"))
+                .andExpect(status().isOk());
+        api.perform(patch("/api/usuarios/{id}/estado", registrado.id())
+                        .contentType(APPLICATION_JSON).content("{\"activo\":false}"))
+                .andExpect(status().isOk());
+        api.perform(patch("/api/usuarios/{id}/rol", registrado.id())
+                        .contentType(APPLICATION_JSON).content("{\"rol\":\"ADMIN\"}"))
+                .andExpect(status().isOk());
+
+        Usuario actualizado = almacen.findById(registrado.id()).orElseThrow();
+        assertFalse(actualizado.isActivo());
+        assertEquals(Rol.ADMIN, actualizado.getRol());
     }
 }

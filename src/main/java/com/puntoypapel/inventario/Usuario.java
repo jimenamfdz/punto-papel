@@ -70,4 +70,8 @@ public class Usuario {
 
     public void desactivar() { activo = false; }
     public void activar() { activo = true; }
+    public void cambiarRol(Rol nuevoRol) {
+        if (nuevoRol == null) throw new IllegalArgumentException("El rol es obligatorio.");
+        rol = nuevoRol;
+    }
 }

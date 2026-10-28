@@ -24,6 +24,17 @@ public class Inventario {
         return List.copyOf(productos.findAll());
     }
 
+    public List<Producto> getProductosPorCategoria(String categoria) {
+        if (categoria == null || categoria.isBlank()) {
+            return getProductos();
+        }
+        String categoriaNormalizada = categoria.trim().toLowerCase();
+        return productos.findAll().stream()
+                .filter(producto -> producto.getCategoria().trim().toLowerCase()
+                        .equals(categoriaNormalizada))
+                .toList();
+    }
+
     public List<Producto> getProductosConStockBajo() {
         return productos.findAll().stream()
                 .filter(Producto::tieneStockBajo)

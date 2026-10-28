@@ -1,0 +1,6 @@
+.git
+.local
+.env
+target
+*.log
+README.md

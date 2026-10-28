@@ -306,6 +306,20 @@ La suite incluye pruebas unitarias, de controladores, persistencia real con
 PostgreSQL, BCrypt, login y rechazo de peticiones protegidas sin credenciales.
 Los archivos `.env` y `.local/` están ignorados por Git y nunca deben subirse.
 
+## Ejecutar con Docker
+
+Requiere Docker Desktop. Copia `.env.example` a `.env`, configura `DB_PASSWORD`
+y ejecuta:
+
+```bash
+docker compose up --build
+```
+
+La aplicación quedará disponible en [http://localhost:8080](http://localhost:8080)
+y Swagger en [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html).
+Para detener los contenedores conserva los datos con `docker compose down`; para
+eliminar también la base local usa `docker compose down -v`.
+
 ## Prueba de persistencia con PostgreSQL
 
 `mvn test` ejecuta las pruebas unitarias sin requerir PostgreSQL. La prueba de

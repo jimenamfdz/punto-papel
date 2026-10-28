@@ -306,6 +306,12 @@ La suite incluye pruebas unitarias, de controladores, persistencia real con
 PostgreSQL, BCrypt, login y rechazo de peticiones protegidas sin credenciales.
 Los archivos `.env` y `.local/` están ignorados por Git y nunca deben subirse.
 
+## Integración continua
+
+GitHub Actions ejecuta automáticamente `mvn test` con Java 21 y PostgreSQL 17
+en cada push a `main` y en cada pull request. El flujo está definido en
+`.github/workflows/ci.yml`.
+
 ## Ejecutar con Docker
 
 Requiere Docker Desktop. Copia `.env.example` a `.env`, configura `DB_PASSWORD`

@@ -42,4 +42,14 @@ public class VentaController {
         Instant fin = hasta == null ? null : hasta.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
         return servicio.buscarVentas(productoId, inicio, fin);
     }
+
+    @GetMapping("/resumen")
+    public ResumenVentas resumenVentas(
+            @RequestParam(value = "productoId", required = false) UUID productoId,
+            @RequestParam(value = "desde", required = false) LocalDate desde,
+            @RequestParam(value = "hasta", required = false) LocalDate hasta) {
+        Instant inicio = desde == null ? null : desde.atStartOfDay(ZoneOffset.UTC).toInstant();
+        Instant fin = hasta == null ? null : hasta.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+        return servicio.resumirVentas(productoId, inicio, fin);
+    }
 }

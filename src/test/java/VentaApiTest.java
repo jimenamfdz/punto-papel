@@ -120,4 +120,66 @@ class VentaApiTest {
         assertEquals("La fecha inicial debe ser anterior a la fecha final.",
                 mapper.readTree(respuesta).get("mensaje").asText());
     }
+
+    @Test
+    void calculaResumenGeneralYPorProducto() throws Exception {
+        Inventario inventario = new Inventario(new AlmacenProductosMemoria());
+        Producto cuaderno = new Producto("Cuaderno", 20.0, 10);
+        Producto lapiz = new Producto("Lápiz", 8.0, 10);
+        inventario.registrarProducto(cuaderno);
+        inventario.registrarProducto(lapiz);
+        AlmacenVentasMemoria almacen = new AlmacenVentasMemoria();
+        var api = api(inventario, almacen);
+        api.perform(post("/api/ventas/productos/{id}", cuaderno.getId())
+                        .contentType(APPLICATION_JSON).content("{\"cantidad\":2}"))
+                .andExpect(status().isCreated());
+        api.perform(post("/api/ventas/productos/{id}", cuaderno.getId())
+                        .contentType(APPLICATION_JSON).content("{\"cantidad\":1}"))
+                .andExpect(status().isCreated());
+        api.perform(post("/api/ventas/productos/{id}", lapiz.getId())
+                        .contentType(APPLICATION_JSON).content("{\"cantidad\":4}"))
+                .andExpect(status().isCreated());
+
+        var respuesta = api.perform(get("/api/ventas/resumen"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        var resumen = mapper.readTree(respuesta);
+        assertEquals(3, resumen.get("totalVentas").asInt());
+        assertEquals(7, resumen.get("unidadesVendidas").asInt());
+        assertEquals(92.0, resumen.get("importeTotal").asDouble());
+        assertEquals(2, resumen.get("porProducto").size());
+        var resumenCuaderno = java.util.stream.StreamSupport.stream(
+                        resumen.get("porProducto").spliterator(), false)
+                .filter(item -> cuaderno.getId().toString().equals(item.get("productoId").asText()))
+                .findFirst().orElseThrow();
+        var resumenLapiz = java.util.stream.StreamSupport.stream(
+                        resumen.get("porProducto").spliterator(), false)
+                .filter(item -> lapiz.getId().toString().equals(item.get("productoId").asText()))
+                .findFirst().orElseThrow();
+        assertEquals(3, resumenCuaderno.get("unidadesVendidas").asInt());
+        assertEquals(60.0, resumenCuaderno.get("importeTotal").asDouble());
+        assertEquals(2, resumenCuaderno.get("numeroVentas").asInt());
+        assertEquals(1, resumenLapiz.get("numeroVentas").asInt());
+    }
+
+    @Test
+    void resumenRespetaFiltrosDeProductoYFecha() throws Exception {
+        Inventario inventario = new Inventario(new AlmacenProductosMemoria());
+        Producto producto = new Producto("Goma", 5.0, 3);
+        inventario.registrarProducto(producto);
+        AlmacenVentasMemoria almacen = new AlmacenVentasMemoria();
+        var api = api(inventario, almacen);
+        api.perform(post("/api/ventas/productos/{id}", producto.getId())
+                        .contentType(APPLICATION_JSON).content("{\"cantidad\":2}"))
+                .andExpect(status().isCreated());
+        String hoy = LocalDate.now(ZoneOffset.UTC).toString();
+
+        var respuesta = api.perform(get("/api/ventas/resumen")
+                        .param("productoId", producto.getId().toString())
+                        .param("desde", hoy).param("hasta", hoy))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        var resumen = mapper.readTree(respuesta);
+        assertEquals(1, resumen.get("totalVentas").asInt());
+        assertEquals(2, resumen.get("unidadesVendidas").asInt());
+        assertEquals(10.0, resumen.get("importeTotal").asDouble());
+    }
 }

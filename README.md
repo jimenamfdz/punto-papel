@@ -41,6 +41,7 @@ mvn test
 - `PUT /api/productos/{id}` — actualiza nombre, precio y existencias conservando el ID.
 - `POST /api/ventas/productos/{productoId}` — registra una venta y descuenta existencias.
 - `GET /api/ventas` — consulta el historial de ventas, con filtros opcionales.
+- `GET /api/ventas/resumen` — devuelve totales y desglose agrupado por producto.
 
 ### Registrar y consultar un producto por ID
 
@@ -114,6 +115,17 @@ curl 'http://localhost:8080/api/ventas?productoId=REEMPLAZA_CON_EL_ID&desde=2026
 `productoId` usa un UUID. `desde` y `hasta` usan el formato `YYYY-MM-DD` y ambos
 días se incluyen en la búsqueda. Los resultados se ordenan del más reciente al
 más antiguo. Un rango invertido o una fecha con formato inválido devuelve `400`.
+
+Para obtener el resumen general usa:
+
+```bash
+curl 'http://localhost:8080/api/ventas/resumen'
+```
+
+La respuesta contiene `totalVentas`, `unidadesVendidas`, `importeTotal` y
+`porProducto`. Cada elemento de `porProducto` incluye el producto, sus unidades,
+el importe acumulado y el número de operaciones. El resumen acepta los mismos
+parámetros opcionales `productoId`, `desde` y `hasta` del historial.
 
 ### Validación del registro y la actualización de productos
 

@@ -42,7 +42,7 @@ public class ProductoController {
             @PathVariable("id") UUID id, @RequestBody ProductoRequest solicitud) {
         solicitud.validarCamposObligatorios();
         return ResponseEntity.of(inventario.actualizarProducto(
-                id, solicitud.nombre(), solicitud.precio(), solicitud.existencias()));
+                id, solicitud.nombre(), solicitud.precio(), solicitud.existencias(), solicitud.categoria()));
     }
 
     @PatchMapping("/{id}/stock-minimo")
@@ -58,7 +58,8 @@ public class ProductoController {
         Producto producto = new Producto(
                 solicitud.nombre(),
                 solicitud.precio(),
-                solicitud.existencias()
+                solicitud.existencias(),
+                solicitud.categoria()
         );
         inventario.registrarProducto(producto);
         return ResponseEntity.status(HttpStatus.CREATED).body(producto);

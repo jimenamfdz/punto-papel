@@ -36,8 +36,18 @@ public class Inventario {
 
     @Transactional
     public Optional<Producto> actualizarProducto(UUID id, String nombre, double precio, int existencias) {
+        return actualizarProducto(id, nombre, precio, existencias, null);
+    }
+
+    @Transactional
+    public Optional<Producto> actualizarProducto(
+            UUID id, String nombre, double precio, int existencias, String categoria) {
         return productos.findById(id).map(producto -> {
-            producto.actualizar(nombre, precio, existencias);
+            if (categoria == null) {
+                producto.actualizar(nombre, precio, existencias);
+            } else {
+                producto.actualizar(nombre, precio, existencias, categoria);
+            }
             return productos.save(producto);
         });
     }

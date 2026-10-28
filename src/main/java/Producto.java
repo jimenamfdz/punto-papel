@@ -17,6 +17,8 @@ public class Producto {
     private double precio;
     @Column(nullable = false)
     private int existencias;
+    @Column(nullable = false)
+    private String categoria;
     @Column(name = "stock_minimo", nullable = false)
     private int stockMinimo;
 
@@ -25,10 +27,18 @@ public class Producto {
     }
 
     public Producto(String nombre, double precio, int existencias) {
-        actualizar(nombre, precio, existencias);
+        this(nombre, precio, existencias, "");
+    }
+
+    public Producto(String nombre, double precio, int existencias, String categoria) {
+        actualizar(nombre, precio, existencias, categoria);
     }
 
     public void actualizar(String nombre, double precio, int existencias) {
+        actualizar(nombre, precio, existencias, categoria);
+    }
+
+    public void actualizar(String nombre, double precio, int existencias, String categoria) {
         if (nombre == null || nombre.isBlank()) {
             throw new IllegalArgumentException("El nombre no puede estar vacío.");
         }
@@ -41,6 +51,7 @@ public class Producto {
         this.nombre = nombre;
         this.precio = precio;
         this.existencias = existencias;
+        this.categoria = categoria == null ? "" : categoria.trim();
     }
 
     public UUID getId() {
@@ -57,6 +68,12 @@ public class Producto {
 
     public double getPrecio() {
         return precio;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonInclude(
+            com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY)
+    public String getCategoria() {
+        return categoria;
     }
 
     @com.fasterxml.jackson.annotation.JsonInclude(

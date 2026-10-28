@@ -1,6 +1,10 @@
 package com.puntoypapel.inventario;
 
-public record ProductoRequest(String nombre, Double precio, Integer existencias) {
+public record ProductoRequest(String nombre, Double precio, Integer existencias, String categoria) {
+
+    public ProductoRequest(String nombre, Double precio, Integer existencias) {
+        this(nombre, precio, existencias, "");
+    }
 
     public void validarCamposObligatorios() {
         if (nombre == null) {

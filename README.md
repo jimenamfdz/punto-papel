@@ -281,6 +281,19 @@ bash scripts/postgres-local.sh stop
 
 Los datos quedan guardados en `.local/postgres`; conserva esa carpeta al reiniciar.
 
+## Verificación final
+
+Con PostgreSQL local iniciado y las variables de `.env` cargadas, ejecuta:
+
+```bash
+set -a; source .env; set +a
+mvn test
+```
+
+La suite incluye pruebas unitarias, de controladores, persistencia real con
+PostgreSQL, BCrypt, login y rechazo de peticiones protegidas sin credenciales.
+Los archivos `.env` y `.local/` están ignorados por Git y nunca deben subirse.
+
 ## Prueba de persistencia con PostgreSQL
 
 `mvn test` ejecuta las 66 pruebas unitarias sin requerir PostgreSQL. La prueba de

@@ -46,12 +46,22 @@ class PersistenciaPostgresTest {
         return cliente.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
+    private HttpResponse<String> peticionSinCredenciales(ServletWebServerApplicationContext app,
+                                                         String metodo, String ruta) throws Exception {
+        var request = HttpRequest.newBuilder(URI.create(
+                        "http://127.0.0.1:" + app.getWebServer().getPort() + ruta))
+                .timeout(Duration.ofSeconds(15))
+                .method(metodo, HttpRequest.BodyPublishers.noBody()).build();
+        return cliente.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
     @Test
     void conservaProductoYActualizacionTrasReiniciarAplicacion() throws Exception {
         String nombre = "Cuaderno prueba " + UUID.randomUUID();
         String id;
         JsonNode registrado;
         try (var app = iniciarAplicacion()) {
+            assertEquals(401, peticionSinCredenciales(app, "GET", "/api/productos").statusCode());
             // El registro es público; después todas las operaciones usan Basic Auth.
             peticion(app, "POST", "/api/usuarios",
                     "{\"nombreUsuario\":\"admin\",\"password\":\"secreto123\",\"rol\":\"ADMIN\"}");
